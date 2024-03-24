@@ -7,8 +7,10 @@ void interpretFile(string filename, bool loud) {
     Interpreter interpreter;
     ASTBuilder astBuilder;
     auto ast = astBuilder.fromFile(filename);
-    ASTTracer tracer;
-    tracer.traverse(ast);
+    if (loud) {
+        ASTTracer tracer;
+        tracer.traverse(ast);
+    }
     interpreter.setLoud(loud);
     interpreter.run(ast);
 }

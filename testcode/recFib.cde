@@ -6,6 +6,6 @@ def fib(m) {
 }
 i := 1;
 loop (i < 14) {
-    print fib(i);
+    println (fib(i) + " ");
     i := i + 1;
 }

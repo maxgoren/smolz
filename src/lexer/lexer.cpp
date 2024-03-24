@@ -3,7 +3,14 @@
 Lexeme Lexer::extractStringLiteral() {
     string strLit;
     while (sb.getChar() != sb.EOFMark()) {
-        strLit.push_back(sb.getChar());
+        char rc = sb.getChar();
+        if (rc == '\\') {
+            if (sb.nextChar() == 'n')
+                strLit.push_back('\n');
+            else sb.unGet();
+        } else {
+            strLit.push_back(rc);
+        }
         sb.nextChar();
         if (sb.getChar() == '"')
             break;
@@ -20,6 +27,7 @@ Lexeme Lexer::extractWord() {
     }
     sb.unGet();
     if (word == "print") tok = PRINT;
+    if (word == "println") tok = PRINT;
     if (word == "if") tok = IF;
     if (word == "loop") tok = LOOP;
     if (word == "def") tok = DEF;
@@ -89,7 +97,6 @@ vector<Lexeme>& Lexer::lex(string filename) {
 vector<Lexeme>& Lexer::start() {
     Lexeme next;
     while (sb.getChar() != sb.EOFMark()) {
-        cout<<".";
         if (isalpha(sb.getChar())) {
             next = extractWord();
         } else if (isdigit(sb.getChar())) {
@@ -117,6 +124,5 @@ vector<Lexeme>& Lexer::start() {
         sb.nextChar();
     }
     lexemes.push_back(Lexeme(EOFTOKEN, "<EOF>", sb.lineNumber()));
-    cout<<"Lexical analysis complete."<<endl;
     return lexemes;
 }

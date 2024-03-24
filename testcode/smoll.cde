@@ -1,14 +1,14 @@
 first := (7*3+13);
-print first;
-print (1 + 7);
+println first + ", ";
+print (1 + 7) + ", ";
 if (2 == 2) {
-    print (13);
+    print (13 + " ");
 }
 if (2 == 7) {
     print (42);
 }
 i := 1;
 loop (i < 6) {
-    print i;
+    print (i + "\n");
     i := (i + 1);
 }

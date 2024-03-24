@@ -21,5 +21,5 @@ Object* makeIntObject(int value);
 Object* makeRealObject(float value);
 Object* makeBoolObject(bool value);
 Object* makeStringObject(string* object);
-
+string toString(Object* object);
 #endif

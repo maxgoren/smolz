@@ -22,8 +22,9 @@ Object* Interpreter::eval(ASTNode* node) {
             default:
                 cout<<"Unknown Operator: "<<node->data.stringVal<<endl;
         }
-    } else if (lhs->type == AS_STRING && rhs->type == AS_STRING && node->data.tokenVal == PLUS) {
-        return makeStringObject(new string(*(lhs->stringVal) + *(rhs->stringVal)));
+    } else if ((lhs->type == AS_STRING || rhs->type == AS_STRING) && node->data.tokenVal == PLUS) {
+        
+        return makeStringObject(new string(toString(lhs) + toString(rhs)));
     } else {
         cout<<"Error: Unsupported operation for those types."<<endl;
     }
@@ -93,27 +94,12 @@ Object* Interpreter::expression(ASTNode* node) {
 }
 
 void Interpreter::printStmt(ASTNode* node) {
-    enter("[print]");
+    enter("[print]" + node->data.stringVal);
     Object* obj = expression(node->left);
-    switch (obj->type) {
-        case AS_REAL: 
-            cout<<obj->realVal<<endl;
-            break;
-        case AS_INT:
-            cout<<obj->intVal<<endl;
-            break;
-        case AS_BOOL:
-            if (obj->boolVal) cout<<"true"<<endl;
-            else              cout<<"false"<<endl;
-            break;
-            if (obj->boolVal) cout<<"true"<<endl;
-            else              cout<<"false"<<endl;
-            break;
-        case AS_STRING:
-            cout<<*obj->stringVal<<endl;
-            break;
-        default:
-            break;
+    if (node->data.stringVal == "println") {
+        cout<<toString(obj)<<endl;
+    } else {
+        cout<<toString(obj)<<flush;
     }
     leave();
 }

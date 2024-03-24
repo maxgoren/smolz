@@ -47,7 +47,6 @@ ASTNode* Parser::program() {
             m = t;
         }
     }
-    cout<<"Parse Complete."<<endl;
     return node;
 }
 
@@ -63,8 +62,8 @@ ASTNode* Parser::paramList() {
 ASTNode* Parser::statement() {
     ASTNode* node;
     if (lookahead() == PRINT) {
-        match(PRINT);
         node = makeStmtNode(PRINT_STMT, lookahead(), current.stringVal);
+        match(PRINT);
         node->left = expression();
         if (lookahead() == SEMI)
             match(SEMI);
