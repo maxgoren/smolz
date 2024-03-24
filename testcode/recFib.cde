@@ -1,0 +1,11 @@
+def fib(m) {
+    if (m < 2) {
+        return 1.0;
+    }
+    return fib(m-1) + fib(m-2);
+}
+i := 1;
+loop (i < 14) {
+    print fib(i);
+    i := i + 1;
+}
