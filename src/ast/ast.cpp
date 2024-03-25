@@ -52,6 +52,7 @@ void ASTTracer::printNode(ASTNode* node) {
             case OP_EXPR:    cout<<"[OP_EXPR]"<<endl; break;
             case FUNC_EXPR:  cout<<"[FUNC_EXPR]"<<endl; break;
             case STRINGLIT_EXPR: cout<<"[STRINGLIT_EXPR]"<<endl; break;
+            case ARRAY_EXPR: cout<<"[ARRAY_EXPR]"<<endl; break;
             default:
                 break;
         }
@@ -63,6 +64,8 @@ void ASTTracer::printNode(ASTNode* node) {
             case ASSIGN_STMT: cout<<"[ASSIGN_STMT]"<<endl; break;
             case DEF_STMT:    cout<<"[DEF_STMT]"<<endl; break;
             case RETURN_STMT: cout<<"[RETURN_STMT]"<<endl; break;
+            case PUSH_STMT:   cout<<"[PUSH_STMT]"<<endl; break;
+            case POP_STMT:    cout<<"[POP_STMT]"<<endl; break;
             default:
                 break;
         }

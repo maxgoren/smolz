@@ -1,0 +1,3 @@
+anArr := [];
+push(anArr, 13);
+println anArr;

@@ -93,6 +93,28 @@ ASTNode* Parser::statement() {
         match(RCURLY);
         return node;
     }
+    if (lookahead() == PUSH) {
+        node = makeStmtNode(PUSH_STMT, lookahead(), current.stringVal);
+        match(PUSH);
+        match(LPAREN);
+        node->left = expression();
+        match(COMA);
+        node->right = expression();
+        match(RPAREN);
+        if (lookahead() == SEMI)
+            match(SEMI);
+        return node;
+    }
+    if (lookahead() == POP) {
+        node = makeStmtNode(POP_STMT, lookahead(), current.stringVal);
+        match(POP);
+        match(LPAREN);
+        node->left = expression();
+        match(RPAREN);
+        if (lookahead() == SEMI)
+            match(SEMI);
+        return node;
+    }
     if (lookahead() == DEF) {
         node = makeStmtNode(DEF_STMT, lookahead(), current.stringVal);
         match(DEF);
@@ -109,6 +131,11 @@ ASTNode* Parser::statement() {
     if (lookahead() == ID) {
         node = makeExprNode(ID_EXPR, lookahead(), current.stringVal);
         match(ID);
+        if (lookahead() == LSQ) {
+            match(LSQ);
+            node->left = simpleExpr();
+            match(RSQ);
+        }
         if (lookahead() == ASSIGN) {
             ASTNode* t = makeStmtNode(ASSIGN_STMT, lookahead(), current.stringVal);
             t->left = node;
@@ -126,6 +153,7 @@ ASTNode* Parser::statement() {
                 match(SEMI);
             return node;
         }
+        return node;
     }
     if (lookahead() == LPAREN) {
         node = simpleExpr();
@@ -142,6 +170,7 @@ ASTNode* Parser::statement() {
         return node;
     }
     cout<<"Unknown Token: "<<current.stringVal<<endl;
+    nexttoken();
     return node;
 }
 
@@ -198,6 +227,11 @@ ASTNode* Parser::var() {
     if (lookahead() == ID) {
         node = makeExprNode(ID_EXPR, lookahead(), current.stringVal);
         match(ID);
+        if (lookahead() == LSQ) {
+            match(LSQ);
+            node->left = simpleExpr();
+            match(RSQ);
+        } else 
         if (lookahead() == LPAREN) {
             match(LPAREN);
             node->type.expr = FUNC_EXPR;
@@ -211,6 +245,30 @@ ASTNode* Parser::var() {
         match(LPAREN);
         node = simpleExpr();
         match(RPAREN);
+    }
+    if (lookahead() == LSQ) {
+        node = arrayExpr();
+    }
+    return node;
+}
+
+ASTNode* Parser::arrayExpr() {
+    ASTNode* node = makeExprNode(ARRAY_EXPR, lookahead(), current.stringVal);
+    match(LSQ);
+    if (lookahead() == RSQ) {
+        match(RSQ);
+        return node;
+    } else {
+        ASTNode d;
+        ASTNode* c = &d;
+        do {
+            c->left = expression();
+            c = c->left;
+            if (lookahead() == COMA)
+                match(COMA);
+        } while(lookahead() != RSQ);
+        match(RSQ);
+        node->left = d.left;
     }
     return node;
 }

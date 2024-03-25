@@ -62,21 +62,109 @@ Object* Interpreter::procedureCall(ASTNode* node) {
     return retVal;
 }
 
+Object* Interpreter::arrayExpr(ASTNode* node) {
+    enter("[array_expr]");
+    ASTNode* t = node->left;
+    ListNode d;
+    ListNode* x = &d;
+    while (t != nullptr) {
+        Object* obj = expression(t);
+        say("push: " + toString(obj));
+        x->next = new ListNode;
+        x->data = obj;
+        x = x->next;
+        x->next = nullptr;
+        t = t->left;
+    }
+    _arrays.push_back(d.next);
+    return makeArrayObject(_arrays.back());
+}
+
+Object* Interpreter::getArrayEntry(ASTNode* node, Object* arr) {
+    enter("arrayEntry");
+    Object* tmp = expression(node->left);
+    int arrIndex = tmp->realVal;
+    say("Index: " + to_string(arrIndex));
+    ListNode* x = arr->listhead;
+    int i = 0;
+    do {
+        if (x == nullptr) {
+            say("Error: Index " + to_string(arrIndex) + " out of range.");
+            return makeIntObject(-1);
+        }
+        i++;
+        x = x->next;
+    } while (i < arrIndex);
+    return x->data;
+}
+
+void Interpreter::pushArray(ASTNode* node) {
+    enter("[push arr]");
+    Object* arr;
+    auto name = node->left->data.stringVal;
+    Object* value = expression(node->right);
+    say("push: " + toString(value));
+    bool is_local = false;
+    ListNode *list, *toAdd = new ListNode;
+    toAdd->data = value;
+    if (!callStack.empty() && callStack.top()->env.lookup(name) != callStack.top()->env.nil()) {
+        is_local = true;
+        list = callStack.top()->env.lookup(name)->listhead;
+    } else if (st.lookup(name) != st.nil()) {
+        list = st.lookup(node->data.stringVal)->listhead;
+    } else {
+        cout<<"Error: No array named '"<<name<<"' found."<<endl;
+        return;
+    }
+    toAdd->next = list;
+    list = toAdd;
+    if (is_local) {
+        callStack.top()->env.insert(name, makeArrayObject(list));
+    } else {
+        st.insert(name, makeArrayObject(list));
+    }
+}
+
+void Interpreter::popArray(ASTNode* node) {
+    enter("[pop arr]");
+    ListNode* list;
+    auto name = node->left->data.stringVal;
+    if (!callStack.empty() && callStack.top()->env.lookup(name) != callStack.top()->env.nil()) {
+        list = callStack.top()->env.lookup(name)->listhead;
+    } else if (st.lookup(name)->realVal != -1.0) {
+        list = st.lookup(node->data.stringVal)->listhead;
+    } else {
+        cout<<"Error: No array named "<<name<<" found."<<endl;
+        return;
+    }
+    ListNode* x = list;
+    list = list->next;
+    delete x;
+    st.insert(name, makeArrayObject(list));
+}
+
 Object* Interpreter::expression(ASTNode* node) {
-    Object* result;
+    Object* result, *tmp;
+    int arrIndex = 0;
     switch (node->type.expr) {
         case OP_EXPR:
             enter("[op expression]" + node->data.stringVal); leave();
             return eval(node);
         case ID_EXPR:
             enter("[id expression]");
-            if (!callStack.empty() && callStack.top()->env.lookup(node->data.stringVal)->realVal != -1.0) {
+            if (!callStack.empty() && callStack.top()->env.lookup(node->data.stringVal)!= callStack.top()->env.nil()) {
                 result = callStack.top()->env.lookup(node->data.stringVal);
-                leave("local variable: " + to_string(result->realVal));
+                if (result->type == AS_ARRAY && node->left != nullptr) {
+                   result = getArrayEntry(node, result);
+                }
+                leave("local variable: " + toString(result));
                 return result;
             }
             result = st.lookup(node->data.stringVal);
-            leave("global variable: " + to_string(result->realVal));
+            if (result->type == AS_ARRAY && node->left != nullptr) {
+                result = getArrayEntry(node, result);
+            }
+            leave("global variable: " + toString(result));
             return result;
         case CONST_EXPR:
             enter("const expression: " + node->data.stringVal); leave();
@@ -87,6 +175,8 @@ Object* Interpreter::expression(ASTNode* node) {
         case STRINGLIT_EXPR:
             enter("[string literal expression]");
             return makeStringObject(&(node->data.stringVal));
+        case ARRAY_EXPR:
+            return arrayExpr(node);
         default:
             leave("invalid expression.");
     }
@@ -163,6 +253,12 @@ void Interpreter::statement(ASTNode* node) {
         case ASSIGN_STMT:
             assignStmt(node);
             break;
+        case PUSH_STMT:
+            pushArray(node);
+            break;
+        case POP_STMT:
+            popArray(node);
+            break;
         case DEF_STMT:
             defineFunction(node);
             break;
@@ -205,7 +301,7 @@ void Interpreter::run(ASTNode* node) {
         stopProcedure = false;
         return;
     }
-    say("sibling");
+    say("sibling"); leave(); leave();
     run(node->next);
 }
 

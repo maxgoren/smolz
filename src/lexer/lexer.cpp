@@ -32,6 +32,8 @@ Lexeme Lexer::extractWord() {
     if (word == "loop") tok = LOOP;
     if (word == "def") tok = DEF;
     if (word == "return") tok = RETURN;
+    if (word == "push") tok = PUSH;
+    if (word == "pop") tok = POP;
     return Lexeme(tok, word, sb.lineNumber());
 }
 Lexeme Lexer::extractNumber() {
@@ -50,6 +52,8 @@ Lexeme Lexer::checkSpecials() {
     if (sb.getChar() == ')') return Lexeme(RPAREN, sb.asString(), sb.lineNumber());
     if (sb.getChar() == '{') return Lexeme(LCURLY, sb.asString(), sb.lineNumber());
     if (sb.getChar() == '}') return Lexeme(RCURLY, sb.asString(), sb.lineNumber());
+    if (sb.getChar() == '[') return Lexeme(LSQ, sb.asString(), sb.lineNumber());
+    if (sb.getChar() == ']') return Lexeme(RSQ, sb.asString(), sb.lineNumber());
     if (sb.getChar() == '+') return Lexeme(PLUS, sb.asString(), sb.lineNumber());
     if (sb.getChar() == '-') return Lexeme(MINUS, sb.asString(), sb.lineNumber());
     if (sb.getChar() == '/') return Lexeme(DIVIDE, sb.asString(), sb.lineNumber());

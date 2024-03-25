@@ -26,6 +26,7 @@ class Parser {
         ASTNode* expression();
         ASTNode* term();
         ASTNode* var();
+        ASTNode* arrayExpr();
 };
 
 #endif

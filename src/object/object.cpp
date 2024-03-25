@@ -3,6 +3,7 @@
 Object* makeObject(StoreAs type) {
     Object* obj = new Object;
     obj->type = type;
+    obj->isnull = false;
     return obj;
 }
 
@@ -30,6 +31,12 @@ Object* makeStringObject(string* value) {
     return obj;
 }
 
+Object* makeArrayObject(ListNode* list) {
+    Object* obj = makeObject(AS_ARRAY);
+    obj->listhead = list;
+    return obj;
+}
+
 string toString(Object* obj) {
     string str;
     switch (obj->type) {
@@ -37,7 +44,18 @@ string toString(Object* obj) {
         case AS_INT:    str = to_string(obj->intVal);  break;
         case AS_BOOL:   str = obj->boolVal ? "true":"false"; break;
         case AS_STRING: str = *obj->stringVal; break;
+        case AS_ARRAY: 
+            str.push_back('[');
+            for (ListNode* m = obj->listhead; m != nullptr; m = m->next) {
+                    Object* data = m->data;
+                    if (data == nullptr) {
+                        str += "[err] ";
+                    } else str += toString(m->data) + " ";
+            }
+            str.push_back(']');
+            break;
         default: str = "(empty)"; break;
+
     }
     return str;
 }

@@ -50,7 +50,7 @@ class Interpreter {
         bool loud;
         bool stopProcedure;
         int recDepth;
-        vector<string*> _strings;
+        vector<ListNode*> _arrays;
         void enter(string s);
         void leave(string s);
         void leave();
@@ -62,6 +62,10 @@ class Interpreter {
         Object* procedureCall(ASTNode* node);
         Object* eval(ASTNode* node);
         Object* expression(ASTNode* node);
+        Object* arrayExpr(ASTNode* node);
+        Object* getArrayEntry(ASTNode* node, Object* arr);
+        void popArray(ASTNode* node);
+        void pushArray(ASTNode* node);
         void returnStmt(ASTNode* node);
         void printStmt(ASTNode* node);
         void ifStmt(ASTNode* node);

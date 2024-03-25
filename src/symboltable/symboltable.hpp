@@ -17,13 +17,15 @@ class SymbolTable {
         typedef node* link;
         link head;
         int n;
+        Object* nilObject;
         link addToTable(link h, link m);
     public:
         SymbolTable();
         SymbolTable(const SymbolTable& st);
         ~SymbolTable();
         void insert(string key, Object* value);
-        Object* lookup(string key);
+        Object*& lookup(string key);
+        Object* nil();
         SymbolTable& operator=(const SymbolTable& st);
 };
 

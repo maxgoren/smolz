@@ -17,6 +17,12 @@ typename SymbolTable::link SymbolTable::addToTable(link h, link m) {
 SymbolTable::SymbolTable() {
     head = nullptr;
     n = 0;
+    nilObject = makeRealObject(-1.0f);
+    nilObject->isnull = true;
+}
+
+Object* SymbolTable::nil() {
+    return nilObject;
 }
 
 SymbolTable::SymbolTable(const SymbolTable& st) {
@@ -38,12 +44,12 @@ void SymbolTable::insert(string key, Object* value) {
     head = addToTable(head, new node(key, value, nullptr));
 }
 
-Object* SymbolTable::lookup(string key) {
+Object*& SymbolTable::lookup(string key) {
     for (link it = head; it != nullptr; it = it->next) {
         if (key == it->key)
             return it->value;
     }
-    return makeRealObject(-1.0f);
+    return nilObject;
 }
 
 SymbolTable& SymbolTable::operator=(const SymbolTable& st) {
