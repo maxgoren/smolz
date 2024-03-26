@@ -1,12 +1,16 @@
 #include "interpreter.hpp"
 
+ActivationRecord::ActivationRecord() {
+
+}
+
 Object* Interpreter::eval(ASTNode* node) {
     enter("eval");
     Object* lhs = expression(node->left);
     Object* rhs = expression(node->right);
     if (lhs->type == rhs->type && (lhs->type == AS_REAL || lhs->type == AS_INT)) {
-        double left = lhs->realVal;
-        double right = rhs->realVal;
+        double left = lhs->prim.realVal;
+        double right = rhs->prim.realVal;
         switch (node->data.tokenVal) {
             case PLUS:     return makeRealObject(left+right);
             case MINUS:    return makeRealObject(left-right);
@@ -37,7 +41,7 @@ ActivationRecord* Interpreter::prepareActivationRecord(ASTNode* node) {
     Procedure* func = procedures[node->data.stringVal];
     ar->function = func;
     for (auto it = func->paramList; it != nullptr; it = it->left) {
-        ar->env.insert(it->data.stringVal, expression(node->left));
+        ar->env.insert(make_pair(it->data.stringVal, memStore.storeAtNextFree(expression(node->left))));
         say(it->data.stringVal + " added to AR.");
     }
     ar->returnValue = makeRealObject(0.0);
@@ -54,7 +58,10 @@ Object* Interpreter::procedureCall(ASTNode* node) {
         stopProcedure = false;
         run(body);
         retVal = callStack.top()->returnValue;
-        say("Returned: " + to_string(retVal->realVal) + " from " + node->data.stringVal);
+        say("Returned: " + to_string(retVal->prim.realVal) + " from " + node->data.stringVal);
+        for (auto toFree : callStack.top()->env) {
+            memStore.free(toFree.second);
+        }
         callStack.pop();
     } else {
         say("No such function: " + node->data.stringVal);
@@ -71,76 +78,81 @@ Object* Interpreter::arrayExpr(ASTNode* node) {
         Object* obj = expression(t);
         say("push: " + toString(obj));
         x->next = new ListNode;
-        x->data = obj;
         x = x->next;
+        x->data = obj;
         x->next = nullptr;
         t = t->left;
     }
-    _arrays.push_back(d.next);
-    return makeArrayObject(_arrays.back());
+    return makeListObject(d.next);
 }
 
 Object* Interpreter::getArrayEntry(ASTNode* node, Object* arr) {
     enter("arrayEntry");
     Object* tmp = expression(node->left);
-    int arrIndex = tmp->realVal;
+    int arrIndex = tmp->prim.realVal;
     say("Index: " + to_string(arrIndex));
     ListNode* x = arr->listhead;
+    if (arrIndex == 0)
+        return x->data;
     int i = 0;
-    do {
-        if (x == nullptr) {
-            say("Error: Index " + to_string(arrIndex) + " out of range.");
-            return makeIntObject(-1);
-        }
+    while (i < arrIndex) {
+        if (x->next != nullptr)
+            x = x->next;
+        else break;
         i++;
-        x = x->next;
-    } while (i < arrIndex);
+    }
     return x->data;
 }
 
 void Interpreter::pushArray(ASTNode* node) {
     enter("[push arr]");
-    Object* arr;
+    Object* listObj;
     auto name = node->left->data.stringVal;
     Object* value = expression(node->right);
     say("push: " + toString(value));
     bool is_local = false;
-    ListNode *list, *toAdd = new ListNode;
+    ListNode *toAdd = new ListNode;
     toAdd->data = value;
-    if (!callStack.empty() && callStack.top()->env.lookup(name) != callStack.top()->env.nil()) {
+    toAdd->next = nullptr;
+    if (!callStack.empty() && callStack.top()->env.find(name) != callStack.top()->env.end()) {
         is_local = true;
-        list = callStack.top()->env.lookup(name)->listhead;
-    } else if (st.lookup(name) != st.nil()) {
-        list = st.lookup(node->data.stringVal)->listhead;
+        listObj = memStore.get(callStack.top()->env[name]);
+    } else if (st.find(name) != st.end()) {
+        listObj = memStore.get(st[node->data.stringVal]);
     } else {
         cout<<"Error: No array named '"<<name<<"' found."<<endl;
         return;
     }
-    toAdd->next = list;
-    list = toAdd;
+    toAdd->next = listObj->listhead;
+    listObj->listhead = toAdd;
     if (is_local) {
-        callStack.top()->env.insert(name, makeArrayObject(list));
+        memStore.store(callStack.top()->env[name], listObj);
     } else {
-        st.insert(name, makeArrayObject(list));
+        memStore.store(st[name], listObj);
     }
 }
 
 void Interpreter::popArray(ASTNode* node) {
     enter("[pop arr]");
-    ListNode* list;
+    bool is_local = false;
+    Object* list;
     auto name = node->left->data.stringVal;
-    if (!callStack.empty() && callStack.top()->env.lookup(name) != callStack.top()->env.nil()) {
-        list = callStack.top()->env.lookup(name)->listhead;
-    } else if (st.lookup(name)->realVal != -1.0) {
-        list = st.lookup(node->data.stringVal)->listhead;
+    if (!callStack.empty() && callStack.top()->env.find(name) != callStack.top()->env.end()) {
+        list = memStore.get(callStack.top()->env[name]);
+    } else if (st.find(name) != st.end()) {
+        list = memStore.get(st[node->data.stringVal]);
     } else {
         cout<<"Error: No array named "<<name<<" found."<<endl;
         return;
     }
-    ListNode* x = list;
-    list = list->next;
+    ListNode* x = list->listhead;
+    list->listhead = list->listhead->next;
     delete x;
-    st.insert(name, makeArrayObject(list));
+    if (is_local) {
+        memStore.store(callStack.top()->env[name], list);
+    } else {
+        memStore.store(st[name],list);
+    }
 }
 
 Object* Interpreter::expression(ASTNode* node) {
@@ -152,16 +164,16 @@ Object* Interpreter::expression(ASTNode* node) {
             return eval(node);
         case ID_EXPR:
             enter("[id expression]");
-            if (!callStack.empty() && callStack.top()->env.lookup(node->data.stringVal)!= callStack.top()->env.nil()) {
-                result = callStack.top()->env.lookup(node->data.stringVal);
-                if (result->type == AS_ARRAY && node->left != nullptr) {
+            if (!callStack.empty() && callStack.top()->env.find(node->data.stringVal)!= callStack.top()->env.end()) {
+                result = memStore.get(callStack.top()->env[node->data.stringVal]);
+                if (result->type == AS_LIST && node->left != nullptr) {
                    result = getArrayEntry(node, result);
                 }
                 leave("local variable: " + toString(result));
                 return result;
             }
-            result = st.lookup(node->data.stringVal);
-            if (result->type == AS_ARRAY && node->left != nullptr) {
+            result = memStore.get(st[node->data.stringVal]);
+            if (result != nullptr && result->type == AS_LIST && node->left != nullptr) {
                 result = getArrayEntry(node, result);
             }
             leave("global variable: " + toString(result));
@@ -175,7 +187,7 @@ Object* Interpreter::expression(ASTNode* node) {
         case STRINGLIT_EXPR:
             enter("[string literal expression]");
             return makeStringObject(&(node->data.stringVal));
-        case ARRAY_EXPR:
+        case LIST_EXPR:
             return arrayExpr(node);
         default:
             leave("invalid expression.");
@@ -196,7 +208,7 @@ void Interpreter::printStmt(ASTNode* node) {
 
 void Interpreter::ifStmt(ASTNode* node) {
     enter("[if statement]");
-    if (expression(node->left)->realVal) {
+    if (expression(node->left)->prim.realVal) {
         ASTNode* t = node->right;
         while (t != nullptr) {
             statement(t);
@@ -208,7 +220,7 @@ void Interpreter::ifStmt(ASTNode* node) {
 
 void Interpreter::loopStmt(ASTNode* node) {
     enter("[loop]");
-    while (expression(node->left)->realVal) {
+    while (expression(node->left)->prim.realVal) {
         ASTNode* t = node->right;
         while (t != nullptr) {
             statement(t);
@@ -221,7 +233,12 @@ void Interpreter::assignStmt(ASTNode* node) {
     enter("[assign]");
     string name = node->left->data.stringVal;
     Object* value = expression(node->right);
-    st.insert(name, value);
+    int saveAddr = memStore.storeAtNextFree(value);
+    if (!callStack.empty()) {
+        callStack.top()->env[name] = saveAddr;
+    } else {
+        st[name] = saveAddr;
+    }
     leave();
 }
 
@@ -238,7 +255,7 @@ void Interpreter::returnStmt(ASTNode* node) {
     enter("[return]");
     if (!callStack.empty()) {
         callStack.top()->returnValue = expression(node->left);
-        say("Returning: " + to_string(callStack.top()->returnValue->realVal));
+        say("Returning: " + toString(callStack.top()->returnValue));
         stopProcedure = true;
     }
     leave();

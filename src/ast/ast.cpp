@@ -52,7 +52,7 @@ void ASTTracer::printNode(ASTNode* node) {
             case OP_EXPR:    cout<<"[OP_EXPR]"<<endl; break;
             case FUNC_EXPR:  cout<<"[FUNC_EXPR]"<<endl; break;
             case STRINGLIT_EXPR: cout<<"[STRINGLIT_EXPR]"<<endl; break;
-            case ARRAY_EXPR: cout<<"[ARRAY_EXPR]"<<endl; break;
+            case LIST_EXPR: cout<<"[LIST_EXPR]"<<endl; break;
             default:
                 break;
         }

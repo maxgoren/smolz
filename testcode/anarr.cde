@@ -1,3 +1,2 @@
-anArr := [];
-push(anArr, 13);
-println anArr;
+myar := [1,13,45];
+println myar;

@@ -4,6 +4,7 @@
 #include <map>
 #include "../object/object.hpp"
 #include "../parser/parser.hpp"
+#include "../memstore/memstore.hpp"
 #include "../symboltable/symboltable.hpp"
 using namespace std;
 
@@ -16,8 +17,9 @@ struct Procedure {
 
 struct ActivationRecord {
     Procedure* function;
-    SymbolTable env;
+    map<string, int> env;
     Object* returnValue;
+    ActivationRecord();
 };
 
 
@@ -50,14 +52,14 @@ class Interpreter {
         bool loud;
         bool stopProcedure;
         int recDepth;
-        vector<ListNode*> _arrays;
         void enter(string s);
         void leave(string s);
         void leave();
         void say(string s);
-        SymbolTable st;
-        CallStack callStack;
+        map<string, int> st;
         map<string, Procedure*> procedures;
+        CallStack callStack;
+        MemStore memStore;
         ActivationRecord* prepareActivationRecord(ASTNode* node);
         Object* procedureCall(ASTNode* node);
         Object* eval(ASTNode* node);

@@ -253,7 +253,7 @@ ASTNode* Parser::var() {
 }
 
 ASTNode* Parser::arrayExpr() {
-    ASTNode* node = makeExprNode(ARRAY_EXPR, lookahead(), current.stringVal);
+    ASTNode* node = makeExprNode(LIST_EXPR, lookahead(), current.stringVal);
     match(LSQ);
     if (lookahead() == RSQ) {
         match(RSQ);
