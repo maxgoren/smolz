@@ -30,6 +30,19 @@ Object::Object(ListNode* list) {
     listhead = list;
 }
 
+Object::Object(const Object& obj) {
+    cout<<"Copy constructor\n"<<flush;
+    switch (obj.type) {
+        case AS_BOOL:   prim.boolVal == obj.prim.boolVal;
+        case AS_INT:    prim.intVal == obj.prim.intVal;
+        case AS_REAL:   prim.realVal == obj.prim.realVal;
+        case AS_STRING: prim.stringVal == obj.prim.stringVal;
+        case AS_LIST:   listhead == obj.listhead;
+    }
+    isnull = obj.isnull;
+    type = obj.type;
+}
+
 bool Object::operator==(const Object& obj) const noexcept {
     switch (obj.type) {
         case AS_BOOL: return prim.boolVal == obj.prim.boolVal;
@@ -39,6 +52,22 @@ bool Object::operator==(const Object& obj) const noexcept {
         case AS_LIST: return  listhead == obj.listhead;
     }
     return false;
+}
+
+Object& Object::operator=(const Object& obj) {
+    cout<<"operator=\n"<<flush;
+    if (obj == *this)
+        return *this;
+    switch (obj.type) {
+        case AS_BOOL:   prim.boolVal == obj.prim.boolVal;
+        case AS_INT:    prim.intVal == obj.prim.intVal;
+        case AS_REAL:   prim.realVal == obj.prim.realVal;
+        case AS_STRING: prim.stringVal == obj.prim.stringVal;
+        case AS_LIST:   listhead == obj.listhead;
+    }
+    isnull = obj.isnull;
+    type = obj.type;
+    return *this;
 }
 
 Object* makeObject(StoreAs type) {
@@ -56,7 +85,7 @@ Object* makeIntObject(int value) {
 }
 
 Object* makeRealObject(float value) {
-    Object* obj = new Object(value);
+    Object* obj = makeObject(AS_REAL);
     obj->prim.realVal = value;
     return obj;
 }
@@ -83,6 +112,7 @@ string toString(Object* obj) {
     if (obj == nullptr)
         return "[err]";
     string str;
+    Object* data;
     switch (obj->type) {
         case AS_REAL:   str = to_string(obj->prim.realVal); break;
         case AS_INT:    str = to_string(obj->prim.intVal);  break;
@@ -90,16 +120,20 @@ string toString(Object* obj) {
         case AS_STRING: str = *obj->prim.stringVal; break;
         case AS_LIST: 
             str.push_back('[');
-            for (ListNode* m = obj->listhead; m != nullptr; m = m->next) {
-                    Object* data = m->data;
+            if (obj->listhead != nullptr) {
+                for (ListNode* m = obj->listhead; m != nullptr; m = m->next) {
+                    data = m->data;
                     if (data == nullptr) {
                         str += "[err] ";
                     } else str += toString(m->data) + " ";
+                }
+            } else {
+                str += "(empty)";
             }
             str.push_back(']');
             break;
-        default: str = "(empty)"; break;
-
+        default: 
+            str = "(empty)"; break;
     }
     return str;
 }

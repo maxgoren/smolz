@@ -74,6 +74,11 @@ Object* Interpreter::arrayExpr(ASTNode* node) {
     ASTNode* t = node->left;
     ListNode d;
     ListNode* x = &d;
+    if (t == nullptr) {
+        x = new ListNode;
+        x->data = makeIntObject(0);
+        return makeListObject(x);
+    }
     while (t != nullptr) {
         Object* obj = expression(t);
         say("push: " + toString(obj));
@@ -107,7 +112,9 @@ Object* Interpreter::getArrayEntry(ASTNode* node, Object* arr) {
 void Interpreter::pushArray(ASTNode* node) {
     enter("[push arr]");
     Object* listObj;
+    int addr;
     auto name = node->left->data.stringVal;
+    say("list: " + name);
     Object* value = expression(node->right);
     say("push: " + toString(value));
     bool is_local = false;
@@ -116,19 +123,22 @@ void Interpreter::pushArray(ASTNode* node) {
     toAdd->next = nullptr;
     if (!callStack.empty() && callStack.top()->env.find(name) != callStack.top()->env.end()) {
         is_local = true;
-        listObj = memStore.get(callStack.top()->env[name]);
+        addr = callStack.top()->env[name];
+        listObj = memStore.get(addr);
     } else if (st.find(name) != st.end()) {
-        listObj = memStore.get(st[node->data.stringVal]);
+        addr = st[node->data.stringVal];
+        listObj = memStore.get(addr);
     } else {
         cout<<"Error: No array named '"<<name<<"' found."<<endl;
         return;
     }
+    say("list " + name + " found at " + to_string(addr));
     toAdd->next = listObj->listhead;
     listObj->listhead = toAdd;
     if (is_local) {
-        memStore.store(callStack.top()->env[name], listObj);
+        memStore.store(addr, listObj);
     } else {
-        memStore.store(st[name], listObj);
+        memStore.store(addr, listObj);
     }
 }
 
@@ -136,23 +146,24 @@ void Interpreter::popArray(ASTNode* node) {
     enter("[pop arr]");
     bool is_local = false;
     Object* list;
+    int addr;
     auto name = node->left->data.stringVal;
     if (!callStack.empty() && callStack.top()->env.find(name) != callStack.top()->env.end()) {
-        list = memStore.get(callStack.top()->env[name]);
+        addr = callStack.top()->env[name];
     } else if (st.find(name) != st.end()) {
-        list = memStore.get(st[node->data.stringVal]);
+        addr = st[node->data.stringVal];
     } else {
         cout<<"Error: No array named "<<name<<" found."<<endl;
         return;
     }
+    list = memStore.get(addr);
     ListNode* x = list->listhead;
-    list->listhead = list->listhead->next;
-    delete x;
-    if (is_local) {
-        memStore.store(callStack.top()->env[name], list);
-    } else {
-        memStore.store(st[name],list);
+    if (x != nullptr) {
+        list->listhead = list->listhead->next;
+        delete x;
     }
+    memStore.store(addr, list);
+    leave();
 }
 
 Object* Interpreter::expression(ASTNode* node) {
@@ -208,12 +219,19 @@ void Interpreter::printStmt(ASTNode* node) {
 
 void Interpreter::ifStmt(ASTNode* node) {
     enter("[if statement]");
-    if (expression(node->left)->prim.realVal) {
-        ASTNode* t = node->right;
-        while (t != nullptr) {
-            statement(t);
-            t = t->next;
-        }
+    ASTNode* t = nullptr;
+    say("testing condition");
+    auto result = expression(node->left)->prim.realVal;
+    if (result) {
+        say("executing matching result");
+        t = node->mid;
+    } else {
+        say("executing else clause");
+        t = node->right;
+    }
+    while (t != nullptr) {
+        statement(t);
+        t = t->next;
     }
     leave();
 }

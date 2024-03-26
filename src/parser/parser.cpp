@@ -76,10 +76,15 @@ ASTNode* Parser::statement() {
         node->left = simpleExpr();
         match(RPAREN);
         match(LCURLY);
-        node->right = program();
+        node->mid = program();
         if (lookahead() == RCURLY)
             match(RCURLY);
-        else cout<<"Hey, who ate my closing brace?"<<endl;
+        if (lookahead() == ELSE) {
+            match(ELSE);
+            node->right = program();
+            if (lookahead() == RCURLY)
+                match(RCURLY);
+        } else cout<<"Hey, who ate my closing brace?"<<endl;
         return node;
     }
     if (lookahead() == LOOP) {
@@ -97,9 +102,9 @@ ASTNode* Parser::statement() {
         node = makeStmtNode(PUSH_STMT, lookahead(), current.stringVal);
         match(PUSH);
         match(LPAREN);
-        node->left = expression();
+        node->left = simpleExpr();
         match(COMA);
-        node->right = expression();
+        node->right = simpleExpr();
         match(RPAREN);
         if (lookahead() == SEMI)
             match(SEMI);
@@ -109,7 +114,7 @@ ASTNode* Parser::statement() {
         node = makeStmtNode(POP_STMT, lookahead(), current.stringVal);
         match(POP);
         match(LPAREN);
-        node->left = expression();
+        node->left = simpleExpr();
         match(RPAREN);
         if (lookahead() == SEMI)
             match(SEMI);

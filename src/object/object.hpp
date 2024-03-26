@@ -25,8 +25,8 @@ struct Object {
     Object(bool boolean);
     Object(string* str);
     Object(ListNode* list);
-    //Object(const Object& obj);
-    //Object& operator=(const Object& obj);
+    Object(const Object& obj);
+    Object& operator=(const Object& obj);
     bool operator==(const Object& obj) const noexcept;
 };
 

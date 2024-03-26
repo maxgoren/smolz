@@ -11,6 +11,7 @@ struct ASTNode {
     struct { TOKENS tokenVal; string stringVal; double doubleVal; } data;
     ASTNode* next;
     ASTNode* left;
+    ASTNode* mid;
     ASTNode* right;
 };
 

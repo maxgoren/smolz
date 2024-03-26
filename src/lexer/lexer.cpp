@@ -29,6 +29,7 @@ Lexeme Lexer::extractWord() {
     if (word == "print") tok = PRINT;
     if (word == "println") tok = PRINT;
     if (word == "if") tok = IF;
+    if (word == "else") tok = ELSE;
     if (word == "loop") tok = LOOP;
     if (word == "def") tok = DEF;
     if (word == "return") tok = RETURN;
