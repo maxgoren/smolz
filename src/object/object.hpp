@@ -18,7 +18,7 @@ struct Object {
         bool boolVal;
         string* stringVal;
         ListHeader* list;
-    } prim;
+    };
     Object();
     Object(const Object& obj);
     Object& operator=(const Object& obj);

@@ -9,8 +9,8 @@ Object* Interpreter::eval(ASTNode* node) {
     Object* lhs = expression(node->left);
     Object* rhs = expression(node->right);
     if (lhs->type != AS_LIST && rhs->type != AS_LIST && lhs->type != AS_STRING && rhs->type != AS_STRING ) {
-        double left = lhs->prim.realVal;
-        double right = rhs->prim.realVal;
+        double left = lhs->realVal;
+        double right = rhs->realVal;
         switch (node->data.tokenVal) {
             case PLUS:     return makeRealObject(left+right);
             case MINUS:    return makeRealObject(left-right);
@@ -60,7 +60,7 @@ Object* Interpreter::procedureCall(ASTNode* node) {
         stopProcedure = false;
         run(body);
         retVal = callStack.top()->returnValue;
-        say("Returned: " + to_string(retVal->prim.realVal) + " from " + node->data.stringVal);
+        say("Returned: " + to_string(retVal->realVal) + " from " + node->data.stringVal);
         for (auto toFree : callStack.top()->env) {
             memStore.free(toFree.second);
         }
@@ -101,13 +101,13 @@ Object* Interpreter::listExpr(ASTNode* node) {
 int Interpreter::listSize(ASTNode* node) {
     enter("[list size]");
     bool is_local = false;
-    Object* list;
+    Object* obj;
     int addr, size;
     auto name = node->left->data.stringVal;
     if (st.find(name) != st.end()) {
         addr = st[name];
-        list = memStore.get(addr);
-        size = list->prim.list->size;
+        obj = memStore.get(addr);
+        size = obj->list->size;
     } else {
         cout<<"Error: No array named "<<name<<" found."<<endl;
         return 0;
@@ -118,9 +118,9 @@ int Interpreter::listSize(ASTNode* node) {
 Object* Interpreter::getListItem(ASTNode* node, Object* listObj) {
     enter("listEntry");
     Object* tmp = expression(node->left);
-    int arrIndex = tmp->prim.realVal;
+    int arrIndex = tmp->realVal;
     say("Index: " + to_string(arrIndex));
-    ListNode* x = listObj->prim.list->head;
+    ListNode* x = listObj->list->head;
     if (arrIndex == 0)
         return x->data;
     int i = 0;
@@ -152,9 +152,9 @@ void Interpreter::pushList(ASTNode* node) {
         cout<<"Error: No array named '"<<name<<"' found."<<endl;
         return;
     }
-    toAdd->next = listObj->prim.list->head;
-    listObj->prim.list->head = toAdd;
-    listObj->prim.list->size += 1;
+    toAdd->next = listObj->list->head;
+    listObj->list->head = toAdd;
+    listObj->list->size += 1;
     if (is_local) {
         memStore.store(addr, listObj);
     } else {
@@ -165,7 +165,7 @@ void Interpreter::pushList(ASTNode* node) {
 void Interpreter::popList(ASTNode* node) {
     enter("[pop arr]");
     bool is_local = false;
-    Object* list;
+    Object* obj;
     int addr;
     auto name = node->left->data.stringVal;
     if (st.find(name) != st.end()) {
@@ -174,13 +174,13 @@ void Interpreter::popList(ASTNode* node) {
         cout<<"Error: No array named "<<name<<" found."<<endl;
         return;
     }
-    list = memStore.get(addr);
-    ListNode* x = list->prim.list->head;
+    obj = memStore.get(addr);
+    ListNode* x = obj->list->head;
     if (x != nullptr) {
-        list->prim.list->head = list->prim.list->head->next;
+        obj->list->head = obj->list->head->next;
         delete x;
-        list->prim.list->size -= 1;
-        memStore.store(addr, list);
+        obj->list->size -= 1;
+        memStore.store(addr, obj);
     }
     leave();
 }
@@ -263,7 +263,7 @@ void Interpreter::ifStmt(ASTNode* node) {
     enter("[if statement]");
     ASTNode* t = nullptr;
     say("testing condition");
-    auto result = expression(node->left)->prim.realVal;
+    auto result = expression(node->left)->boolVal;
     if (result) {
         say("executing matching result");
         t = node->mid;
@@ -284,7 +284,7 @@ void Interpreter::ifStmt(ASTNode* node) {
 
 void Interpreter::loopStmt(ASTNode* node) {
     enter("[loop]");
-    while (expression(node->left)->prim.realVal) {
+    while (expression(node->left)->boolVal) {
         ASTNode* t = node->right;
         while (t != nullptr) {
             statement(t);
