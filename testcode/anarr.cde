@@ -1,2 +1,0 @@
-myar := [1,13,45];
-println myar;

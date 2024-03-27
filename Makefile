@@ -17,8 +17,7 @@ debug:
 	g++ --std=c++17 -g -c src/parser/parser.cpp
 	g++ --std=c++17 -g -c src/buffer/stringbuffer.cpp
 	g++ --std=c++17 -g -c src/object/object.cpp
-	g++ --std=c++17 -g -c src/symboltable/symboltable.cpp
-		g++ --std=c++17 -c src/memstore/memstore.cpp
+	g++ --std=c++17 -c src/memstore/memstore.cpp
 	g++ --std=c++17 -g -c src/interpreter/interpreter.cpp
 	g++ --std=c++17 -g -c src/cli.cpp
 	g++ *.o -o smolz

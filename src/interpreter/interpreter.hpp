@@ -61,13 +61,14 @@ class Interpreter {
         CallStack callStack;
         MemStore memStore;
         ActivationRecord* prepareActivationRecord(ASTNode* node);
+        Object* resolveVariableName(ASTNode* node);
         Object* procedureCall(ASTNode* node);
         Object* eval(ASTNode* node);
         Object* expression(ASTNode* node);
-        Object* arrayExpr(ASTNode* node);
-        Object* getArrayEntry(ASTNode* node, Object* arr);
-        void popArray(ASTNode* node);
-        void pushArray(ASTNode* node);
+        Object* listExpr(ASTNode* node);
+        Object* getListItem(ASTNode* node, Object* arr);
+        void popList(ASTNode* node);
+        void pushList(ASTNode* node);
         void returnStmt(ASTNode* node);
         void printStmt(ASTNode* node);
         void ifStmt(ASTNode* node);

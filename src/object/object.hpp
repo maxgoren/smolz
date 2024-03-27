@@ -7,10 +7,10 @@ enum StoreAs {
     AS_INT, AS_REAL, AS_BOOL, AS_STRING, AS_LIST
 };
 
-struct ListNode;
+struct ListHeader;
 
 struct Object {
-    ListNode* listhead;
+    ListHeader* list;
     bool isnull;
     StoreAs type;
     union {
@@ -20,14 +20,10 @@ struct Object {
         string* stringVal;
     } prim;
     Object();
-    Object(float real);
-    Object(int num);
-    Object(bool boolean);
-    Object(string* str);
-    Object(ListNode* list);
     Object(const Object& obj);
     Object& operator=(const Object& obj);
     bool operator==(const Object& obj) const noexcept;
+    bool operator!=(const Object& obj) const noexcept;
 };
 
 struct ListNode {
@@ -35,12 +31,17 @@ struct ListNode {
     ListNode* next;
 };
 
+struct ListHeader {
+    int size;
+    ListNode* head;
+};
+
 Object* makeObject(StoreAs type);
 Object* makeIntObject(int value);
 Object* makeRealObject(float value);
 Object* makeBoolObject(bool value);
 Object* makeStringObject(string* object);
-Object* makeListObject(ListNode* arrayObj);
+Object* makeListObject(ListHeader* listObj);
 string toString(Object* object);
 int compareObjects(Object* lhs, Object* rhs);
 #endif
