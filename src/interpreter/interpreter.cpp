@@ -8,7 +8,7 @@ Object* Interpreter::eval(ASTNode* node) {
     enter("eval");
     Object* lhs = expression(node->left);
     Object* rhs = expression(node->right);
-    if (lhs->type == rhs->type && (lhs->type == AS_REAL || lhs->type == AS_INT)) {
+    if (lhs->type != AS_LIST && rhs->type != AS_LIST && lhs->type != AS_STRING && rhs->type != AS_STRING ) {
         double left = lhs->prim.realVal;
         double right = rhs->prim.realVal;
         switch (node->data.tokenVal) {
@@ -21,8 +21,10 @@ Object* Interpreter::eval(ASTNode* node) {
                 }
                 return makeRealObject(left/right);
             case MULTIPLY: return makeRealObject(left*right);
-            case EQUAL:    return makeRealObject(left == right);
-            case LESS:     return makeRealObject(left < right);
+            case EQUAL:    return makeBoolObject(left == right);
+            case LESS:     return makeBoolObject(left < right);
+            case GREATER:  return makeBoolObject(left > right);
+            case NOTEQUAL: return makeBoolObject(left != right);
             default:
                 cout<<"Unknown Operator: "<<node->data.stringVal<<endl;
         }

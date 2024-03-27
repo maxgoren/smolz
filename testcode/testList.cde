@@ -1,0 +1,12 @@
+lst := [];
+i := 1;
+loop (i < 14) {
+    push(lst, i);
+    i := i + 1;
+    println lst;
+}
+println lst;
+loop (length(lst) != 0) {
+    pop(lst);
+    println lst;
+}

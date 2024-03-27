@@ -181,7 +181,7 @@ ASTNode* Parser::statement() {
 
 ASTNode* Parser::simpleExpr() {
     ASTNode* node = expression();
-    if (lookahead() == EQUAL || lookahead() == LESS) {
+    if (lookahead() == EQUAL || lookahead() == LESS || lookahead() == NOTEQUAL || lookahead() == GREATER) {
         ASTNode* t = makeExprNode(OP_EXPR, lookahead(), current.stringVal);
         t->left = node;
         match(lookahead());

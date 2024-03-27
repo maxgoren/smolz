@@ -64,7 +64,15 @@ Lexeme Lexer::checkSpecials() {
     if (sb.getChar() == '.') return Lexeme(PERIOD, sb.asString(), sb.lineNumber());
     if (sb.getChar() == ',') return Lexeme(COMA, sb.asString(), sb.lineNumber());
     if (sb.getChar() == '<') return Lexeme(LESS, sb.asString(), sb.lineNumber());
+    if (sb.getChar() == '>') return Lexeme(GREATER, sb.asString(), sb.lineNumber());
     if (sb.getChar() == '"') return Lexeme(QUOTE, sb.asString(), sb.lineNumber());
+    if (sb.getChar() == '!') {
+        sb.nextChar();
+        if (sb.getChar() == '=') 
+            return Lexeme(NOTEQUAL, "==", sb.lineNumber());
+        sb.unGet();
+         return Lexeme(NOT, "!", sb.lineNumber());
+    }
     if (sb.getChar() == '=') {
         sb.nextChar();
         if (sb.getChar() == '=') 
