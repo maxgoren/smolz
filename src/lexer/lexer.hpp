@@ -10,7 +10,8 @@ enum TOKENS {
     DEF, NUMBER, STRING, ID,
     PLUS, MINUS, MULTIPLY, DIVIDE, ASSIGN, 
     LSQ, RSQ, LPAREN, RPAREN, LCURLY, RCURLY,
-    LESS, EQUAL, IF, ELSE, PRINT, LOOP, RETURN, PUSH, POP,
+    LESS, EQUAL, IF, ELSE, PRINT, LOOP, RETURN, 
+    PUSH, POP, LENGTH,
     SEMI, COLON, PERIOD, COMA, QUOTE
 };
 
@@ -19,7 +20,8 @@ inline string tokenString[] = {
     "DEF", "NUMBER", "STRING", "ID",
     "PLUS", "MINUS", "MULTIPLY", "DIVIDE",
     "ASSIGN", "LSQ", "RSQ", "LPAREN", "RPAREN", "LCURLY", "RCURLY",
-    "LESS", "EQUAL", "IF", "ELSE", "PRINT", "LOOP", "RETURN", "PUSH", "POP",
+    "LESS", "EQUAL", "IF", "ELSE", "PRINT", "LOOP", "RETURN", 
+    "PUSH", "POP", "LENGTH",
     "SEMI", "COLON", "PERIOD", "COMA", "QUOTE", 
 };
 

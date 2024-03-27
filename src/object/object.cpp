@@ -11,7 +11,7 @@ Object::Object(const Object& obj) {
         case AS_INT:    prim.intVal == obj.prim.intVal;
         case AS_REAL:   prim.realVal == obj.prim.realVal;
         case AS_STRING: prim.stringVal == obj.prim.stringVal;
-        case AS_LIST:   list == obj.list;
+        case AS_LIST:   prim.list == obj.prim.list;
     }
     isnull = obj.isnull;
     type = obj.type;
@@ -24,7 +24,7 @@ bool Object::operator==(const Object& obj) const noexcept {
             case AS_INT:  return prim.intVal == obj.prim.intVal;
             case AS_REAL: return prim.realVal == obj.prim.realVal;
             case AS_STRING: return prim.stringVal == obj.prim.stringVal;
-            case AS_LIST: return  list == obj.list;
+            case AS_LIST: return  prim.list == obj.prim.list;
         }
     }
     return false;
@@ -41,7 +41,7 @@ Object& Object::operator=(const Object& obj) {
             case AS_INT:    prim.intVal == obj.prim.intVal;
             case AS_REAL:   prim.realVal == obj.prim.realVal;
             case AS_STRING: prim.stringVal == obj.prim.stringVal;
-            case AS_LIST:   list == obj.list;
+            case AS_LIST:   prim.list == obj.prim.list;
         }
         isnull = obj.isnull;
         type = obj.type;
@@ -53,7 +53,6 @@ Object* makeObject(StoreAs type) {
     Object* obj = new Object;
     obj->type = type;
     obj->isnull = false;
-    obj->list = nullptr;
     return obj;
 }
 
@@ -83,7 +82,7 @@ Object* makeStringObject(string* value) {
 
 Object* makeListObject(ListHeader* list) {
     Object* obj = makeObject(AS_LIST);
-    obj->list = list;
+    obj->prim.list = list;
     return obj;
 }
 
@@ -99,8 +98,8 @@ string toString(Object* obj) {
         case AS_STRING: str = *obj->prim.stringVal; break;
         case AS_LIST: 
             str.push_back('[');
-            if (obj->list != nullptr) {
-                for (ListNode* m = obj->list->head; m != nullptr; m = m->next) {
+            if (obj->prim.list != nullptr) {
+                for (ListNode* m = obj->prim.list->head; m != nullptr; m = m->next) {
                     data = m->data;
                     if (data == nullptr) {
                         str += "[err] ";

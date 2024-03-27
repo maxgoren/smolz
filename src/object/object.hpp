@@ -10,7 +10,6 @@ enum StoreAs {
 struct ListHeader;
 
 struct Object {
-    ListHeader* list;
     bool isnull;
     StoreAs type;
     union {
@@ -18,6 +17,7 @@ struct Object {
         float realVal;
         bool boolVal;
         string* stringVal;
+        ListHeader* list;
     } prim;
     Object();
     Object(const Object& obj);

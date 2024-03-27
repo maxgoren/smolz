@@ -254,6 +254,16 @@ ASTNode* Parser::var() {
     if (lookahead() == LSQ) {
         node = arrayExpr();
     }
+    if (lookahead() == LENGTH) {
+        node = makeExprNode(LISTLEN_EXPR, lookahead(), current.stringVal);
+        match(LENGTH);
+        match(LPAREN);
+        node->left = simpleExpr();
+        match(RPAREN);
+        if (lookahead() == SEMI)
+            match(SEMI);
+        return node;
+    }
     return node;
 }
 

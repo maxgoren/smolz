@@ -35,6 +35,7 @@ Lexeme Lexer::extractWord() {
     if (word == "return") tok = RETURN;
     if (word == "push") tok = PUSH;
     if (word == "pop") tok = POP;
+    if (word == "length") tok = LENGTH;
     return Lexeme(tok, word, sb.lineNumber());
 }
 Lexeme Lexer::extractNumber() {

@@ -67,6 +67,7 @@ class Interpreter {
         Object* expression(ASTNode* node);
         Object* listExpr(ASTNode* node);
         Object* getListItem(ASTNode* node, Object* arr);
+        int listSize(ASTNode* node);
         void popList(ASTNode* node);
         void pushList(ASTNode* node);
         void returnStmt(ASTNode* node);
