@@ -4,7 +4,6 @@ smolz:
 	g++ --std=c++17 -c src/parser/parser.cpp
 	g++ --std=c++17 -c src/buffer/stringbuffer.cpp
 	g++ --std=c++17 -c src/object/object.cpp
-	g++ --std=c++17 -c src/symboltable/symboltable.cpp
 	g++ --std=c++17 -c src/memstore/memstore.cpp
 	g++ --std=c++17 -c src/interpreter/interpreter.cpp
 	g++ --std=c++17 -c src/cli.cpp

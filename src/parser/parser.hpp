@@ -2,7 +2,6 @@
 #define parser_hpp
 #include <iostream>
 #include "../lexer/lexer.hpp"
-#include "../symboltable/symboltable.hpp"
 #include "../ast/ast.hpp"
 using std::string;
 

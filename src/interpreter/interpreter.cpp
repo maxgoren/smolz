@@ -68,6 +68,7 @@ Object* Interpreter::procedureCall(ASTNode* node) {
     } else {
         say("No such function: " + node->data.stringVal);
     }
+    leave();
     return retVal;
 }
 
@@ -98,19 +99,30 @@ Object* Interpreter::listExpr(ASTNode* node) {
     return makeListObject(list);
 }
 
+int Interpreter::getAddress(string name) {
+    int addr = 0;
+    if (!callStack.empty() && callStack.top()->env.find(name) != callStack.top()->env.end())
+        addr = callStack.top()->env[name];
+    
+    if (st.find(name) != st.end())
+        addr = st[name];
+   
+    if (addr == 0)
+        cout<<"Error: No List named "<<name<<" found."<<endl;
+    
+    return addr;
+}
+
 int Interpreter::listSize(ASTNode* node) {
     enter("[list size]");
     bool is_local = false;
     Object* obj;
     int addr, size;
     auto name = node->left->data.stringVal;
-    if (st.find(name) != st.end()) {
-        addr = st[name];
+    addr = getAddress(name);
+    if (addr > 0) {
         obj = memStore.get(addr);
         size = obj->list->size;
-    } else {
-        cout<<"Error: No array named "<<name<<" found."<<endl;
-        return 0;
     }
     return size;
 }
@@ -130,6 +142,7 @@ Object* Interpreter::getListItem(ASTNode* node, Object* listObj) {
         else break;
         i++;
     }
+    leave();
     return x->data;
 }
 
@@ -141,37 +154,30 @@ void Interpreter::pushList(ASTNode* node) {
     say("list: " + name);
     Object* value = expression(node->right);
     say("push: " + toString(value));
-    bool is_local = false;
     ListNode *toAdd = new ListNode;
     toAdd->data = value;
     toAdd->next = nullptr;
-    if (st.find(name) != st.end()) {
+    addr = getAddress(name);
+    if (addr > 0) {
         addr = st[name];
         listObj = memStore.get(addr);
-    } else {
-        cout<<"Error: No array named '"<<name<<"' found."<<endl;
-        return;
-    }
-    toAdd->next = listObj->list->head;
-    listObj->list->head = toAdd;
-    listObj->list->size += 1;
-    if (is_local) {
-        memStore.store(addr, listObj);
-    } else {
+        toAdd->next = listObj->list->head;
+        listObj->list->head = toAdd;
+        listObj->list->size += 1;
         memStore.store(addr, listObj);
     }
+    leave();
 }
 
 void Interpreter::popList(ASTNode* node) {
-    enter("[pop arr]");
+    enter("[pop List]");
     bool is_local = false;
     Object* obj;
     int addr;
     auto name = node->left->data.stringVal;
-    if (st.find(name) != st.end()) {
-        addr = st[name];
-    } else {
-        cout<<"Error: No array named "<<name<<" found."<<endl;
+    addr = getAddress(name);
+    if (addr == 0) {
+        cout<<"Error: No List named "<<name<<" found."<<endl;
         return;
     }
     obj = memStore.get(addr);
@@ -185,29 +191,16 @@ void Interpreter::popList(ASTNode* node) {
     leave();
 }
 
-Object* Interpreter::resolveVariableName(ASTNode* node) {
+Object* Interpreter::getVariableValue(ASTNode* node) {
     int addr = 0;
     Object* result;
     string name = node->data.stringVal;
-    if (!callStack.empty() && callStack.top()->env.find(name)!= callStack.top()->env.end()) {
-        addr = callStack.top()->env[name];
-        result = memStore.get(addr);
-        if (result->type == AS_LIST && node->left != nullptr) {
-            result = getListItem(node, result);
-        }
-        leave("local variable: " + toString(result));
-        return result;
+    addr = getAddress(name);
+    result = memStore.get(addr);
+    if (result->type == AS_LIST && node->left != nullptr) {
+         result = getListItem(node, result);
     }
-    if (st.find(node->data.stringVal) != st.end()) {
-        addr = st[node->data.stringVal];
-        result = memStore.get(addr);
-        if (result != nullptr && result->type == AS_LIST && node->left != nullptr) {
-            result = getListItem(node, result);
-        }
-        leave("global variable: " + toString(result) + " at addr: " + to_string(addr));
-        return result;
-    }
-    return nullptr;
+    return result;
 }
 
 Object* Interpreter::expression(ASTNode* node) {
@@ -219,7 +212,7 @@ Object* Interpreter::expression(ASTNode* node) {
             return eval(node);
         case ID_EXPR:
             enter("[id expression]");
-            result = resolveVariableName(node);
+            result = getVariableValue(node);
             if (result != nullptr) {
                 leave();
                 return result;

@@ -5,7 +5,6 @@
 #include "../object/object.hpp"
 #include "../parser/parser.hpp"
 #include "../memstore/memstore.hpp"
-#include "../symboltable/symboltable.hpp"
 using namespace std;
 
 
@@ -61,7 +60,8 @@ class Interpreter {
         CallStack callStack;
         MemStore memStore;
         ActivationRecord* prepareActivationRecord(ASTNode* node);
-        Object* resolveVariableName(ASTNode* node);
+        int getAddress(string name);
+        Object* getVariableValue(ASTNode* node);
         Object* procedureCall(ASTNode* node);
         Object* eval(ASTNode* node);
         Object* expression(ASTNode* node);
