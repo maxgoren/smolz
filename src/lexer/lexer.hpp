@@ -13,7 +13,7 @@ enum TOKENS {
     LSQ, RSQ, LPAREN, RPAREN, LCURLY, RCURLY,
     LESS, GREATER, EQUAL, NOTEQUAL,
     IF, ELSE, PRINT, LOOP, RETURN, 
-    PUSH, POP, LENGTH
+    PUSH, POP, APPEND, LENGTH, SORT
 };
 
 inline string tokenString[] = {
@@ -24,7 +24,7 @@ inline string tokenString[] = {
     "LSQ", "RSQ", "LPAREN", "RPAREN", "LCURLY", "RCURLY",
     "LESS", "GREATER", "EQUAL", "NOTEQUAL", 
     "IF", "ELSE", "PRINT", "LOOP", "RETURN", 
-    "PUSH", "POP", "LENGTH"
+    "PUSH", "POP", "APPEND", "LENGTH", "SORT"
 };
 
 struct Lexeme {

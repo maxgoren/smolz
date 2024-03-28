@@ -113,18 +113,37 @@ int Interpreter::getAddress(string name) {
     return addr;
 }
 
-int Interpreter::listSize(ASTNode* node) {
+Object* Interpreter::listSize(ASTNode* node) {
     enter("[list size]");
     bool is_local = false;
     Object* obj;
     int addr, size;
-    auto name = node->left->data.stringVal;
+    string name = node->left->data.stringVal;
     addr = getAddress(name);
     if (addr > 0) {
         obj = memStore.get(addr);
         size = obj->list->size;
     }
-    return size;
+    return makeIntObject(size);
+}
+
+
+Object* Interpreter::sortList(ASTNode* node) {
+    enter("[sort]");
+    Object* obj;
+    ListHeader* list = new ListHeader;
+    list->head = nullptr;
+    list->size = 0;
+    int addr = 0;
+    string name = node->left->data.stringVal;
+    addr = getAddress(name);
+    if (addr > 0) {
+        obj = memStore.get(addr);
+        list->head = copyList(obj->list->head);
+        list->head = mergeSortList(list->head);
+        list->size = obj->list->size;
+    }
+    return makeListObject(list);
 }
 
 Object* Interpreter::getListItem(ASTNode* node, Object* listObj) {
@@ -169,6 +188,34 @@ void Interpreter::pushList(ASTNode* node) {
     leave();
 }
 
+void Interpreter::appendList(ASTNode* node) {
+    enter("[append list]");
+    Object* listObj;
+    int addr;
+    auto name = node->left->data.stringVal;
+    say("list: " + name);
+    Object* value = expression(node->right);
+    say("push: " + toString(value));
+    ListNode *toAdd = new ListNode;
+    toAdd->data = value;
+    toAdd->next = nullptr;
+    addr = getAddress(name);
+    if (addr > 0) {
+        addr = st[name];
+        listObj = memStore.get(addr);
+        ListNode* itr = listObj->list->head;
+        if (itr == nullptr) {
+            listObj->list->head = toAdd;
+        } else {
+            while (itr->next != nullptr) itr = itr->next;
+            itr->next = toAdd;
+        }
+        listObj->list->size += 1;
+        memStore.store(addr, listObj);
+    }
+    leave();
+}
+
 void Interpreter::popList(ASTNode* node) {
     enter("[pop List]");
     bool is_local = false;
@@ -182,9 +229,10 @@ void Interpreter::popList(ASTNode* node) {
     }
     obj = memStore.get(addr);
     ListNode* x = obj->list->head;
+    Object* result;
     if (x != nullptr) {
         obj->list->head = obj->list->head->next;
-        delete x;
+        result = x->data;
         obj->list->size -= 1;
         memStore.store(addr, obj);
     }
@@ -234,7 +282,10 @@ Object* Interpreter::expression(ASTNode* node) {
             return listExpr(node);
         case LISTLEN_EXPR:
             enter("[listlen expr]"); leave();
-            return makeIntObject(listSize(node));
+            return listSize(node);
+        case SORT_EXPR:
+            enter("[sortlist_expr]"); leave();
+            return sortList(node);
         default:
             break;
     }
@@ -330,7 +381,11 @@ void Interpreter::statement(ASTNode* node) {
         case PUSH_STMT:
             pushList(node);
             break;
+        case APPEND_STMT:
+            appendList(node);
+            break;
         case POP_STMT:
+            enter("[pop list expr]"); leave();
             popList(node);
             break;
         case DEF_STMT:

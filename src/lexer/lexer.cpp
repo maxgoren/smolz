@@ -20,23 +20,24 @@ Lexeme Lexer::extractStringLiteral() {
 
 Lexeme Lexer::extractWord() {
     string word;
-    TOKENS tok = ID;
     while (sb.getChar() != sb.EOFMark() && isalnum(sb.getChar())) {
         word.push_back(sb.getChar());
         sb.nextChar();
     }
     sb.unGet();
-    if (word == "print") tok = PRINT;
-    if (word == "println") tok = PRINT;
-    if (word == "if") tok = IF;
-    if (word == "else") tok = ELSE;
-    if (word == "loop") tok = LOOP;
-    if (word == "def") tok = DEF;
-    if (word == "return") tok = RETURN;
-    if (word == "push") tok = PUSH;
-    if (word == "pop") tok = POP;
-    if (word == "length") tok = LENGTH;
-    return Lexeme(tok, word, sb.lineNumber());
+    if (word == "print" || word == "println") 
+        return Lexeme(PRINT, word, sb.lineNumber());
+    if (word == "if") return Lexeme(IF, word, sb.lineNumber());
+    if (word == "else") return Lexeme(ELSE, word, sb.lineNumber());
+    if (word == "loop") return Lexeme(LOOP, word, sb.lineNumber());
+    if (word == "def") return Lexeme(DEF, word, sb.lineNumber());
+    if (word == "return") return Lexeme(RETURN, word, sb.lineNumber());
+    if (word == "push") return Lexeme(PUSH, word, sb.lineNumber());
+    if (word == "pop") return Lexeme(POP, word, sb.lineNumber());
+    if (word == "length") return Lexeme(LENGTH, word, sb.lineNumber());
+    if (word == "append") return Lexeme(APPEND, word, sb.lineNumber());
+    if (word == "sort") return Lexeme(SORT, word, sb.lineNumber());
+    return Lexeme(ID, word, sb.lineNumber());
 }
 Lexeme Lexer::extractNumber() {
     string word;

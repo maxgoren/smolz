@@ -36,6 +36,10 @@ struct ListHeader {
     ListNode* head;
 };
 
+ListNode* copyList(ListNode* a);
+ListNode* mergeList(ListNode* a, ListNode* b);
+ListNode* mergeSortList(ListNode* h);
+
 Object* makeObject(StoreAs type);
 Object* makeIntObject(int value);
 Object* makeRealObject(float value);

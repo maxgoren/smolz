@@ -110,8 +110,20 @@ ASTNode* Parser::statement() {
             match(SEMI);
         return node;
     }
+    if (lookahead() == APPEND) {
+        node = makeStmtNode(APPEND_STMT, lookahead(), current.stringVal);
+        match(APPEND);
+        match(LPAREN);
+        node->left = simpleExpr();
+        match(COMA);
+        node->right = simpleExpr();
+        match(RPAREN);
+        if (lookahead() == SEMI)
+            match(SEMI);
+        return node;
+    }
     if (lookahead() == POP) {
-        node = makeStmtNode(POP_STMT, lookahead(), current.stringVal);
+        ASTNode* node = makeStmtNode(POP_STMT, lookahead(), current.stringVal);
         match(POP);
         match(LPAREN);
         node->left = simpleExpr();
@@ -251,11 +263,34 @@ ASTNode* Parser::var() {
         node = simpleExpr();
         match(RPAREN);
     }
+    if (lookahead() == LSQ || lookahead() == LENGTH || lookahead() == SORT || lookahead() == POP)
+        node = listExpr();
+    return node;
+}
+
+ASTNode* Parser::listExpr() {
     if (lookahead() == LSQ) {
-        node = arrayExpr();
+        ASTNode* node = makeExprNode(LIST_EXPR, lookahead(), current.stringVal);
+        match(LSQ);
+        if (lookahead() == RSQ) {
+            match(RSQ);
+            return node;
+        } else {
+            ASTNode d;
+            ASTNode* c = &d;
+            do {
+                c->left = expression();
+                c = c->left;
+                if (lookahead() == COMA)
+                    match(COMA);
+            } while(lookahead() != RSQ);
+            match(RSQ);
+            node->left = d.left;
+            return node;
+        }
     }
     if (lookahead() == LENGTH) {
-        node = makeExprNode(LISTLEN_EXPR, lookahead(), current.stringVal);
+        ASTNode* node = makeExprNode(LISTLEN_EXPR, lookahead(), current.stringVal);
         match(LENGTH);
         match(LPAREN);
         node->left = simpleExpr();
@@ -264,26 +299,15 @@ ASTNode* Parser::var() {
             match(SEMI);
         return node;
     }
-    return node;
-}
-
-ASTNode* Parser::arrayExpr() {
-    ASTNode* node = makeExprNode(LIST_EXPR, lookahead(), current.stringVal);
-    match(LSQ);
-    if (lookahead() == RSQ) {
-        match(RSQ);
+    if (lookahead() == SORT) {
+        ASTNode* node = makeExprNode(SORT_EXPR, lookahead(), current.stringVal);
+        match(SORT);
+        match(LPAREN);
+        node->left = simpleExpr();
+        match(RPAREN);
+        if (lookahead() == SEMI)
+            match(SEMI);
         return node;
-    } else {
-        ASTNode d;
-        ASTNode* c = &d;
-        do {
-            c->left = expression();
-            c = c->left;
-            if (lookahead() == COMA)
-                match(COMA);
-        } while(lookahead() != RSQ);
-        match(RSQ);
-        node->left = d.left;
     }
-    return node;
+    return nullptr;
 }
