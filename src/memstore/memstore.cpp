@@ -5,6 +5,7 @@ MemStore::MemStore() {
     memstore[0] = new Object;
     memstore[0]->type = AS_INT;
     memstore[0]->isnull = true;
+    freedCount = 0;
 }
 
 void MemStore::store(int addr, Object* obj) {

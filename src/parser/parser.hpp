@@ -18,14 +18,16 @@ class Parser {
         Parser();
         ASTNode* parse(vector<Lexeme>& tokens);
         ASTNode* program();
-        ASTNode* statement();
-        ASTNode* paramList();
-        ASTNode* argsList();
-        ASTNode* simpleExpr();
         ASTNode* expression();
+        ASTNode* statement();
+        ASTNode* statementList();
         ASTNode* term();
         ASTNode* var();
+        ASTNode* simpleExpr();
         ASTNode* listExpr();
+        ASTNode* lambdaExpr();
+        ASTNode* paramList();
+        ASTNode* argsList();
 };
 
 #endif

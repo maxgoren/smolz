@@ -2,9 +2,10 @@
 #define object_hpp
 #include <iostream>
 #include <vector>
+#include "../closure/closure.hpp"
 using namespace std;
 enum StoreAs {
-    AS_INT, AS_REAL, AS_BOOL, AS_STRING, AS_LIST
+    AS_INT, AS_REAL, AS_BOOL, AS_STRING, AS_LIST, AS_CLOSURE
 };
 
 struct ListHeader;
@@ -18,6 +19,7 @@ struct Object {
         bool boolVal;
         string* stringVal;
         ListHeader* list;
+        Closure* closure;
     };
     Object();
     Object(const Object& obj);
@@ -46,6 +48,7 @@ Object* makeRealObject(float value);
 Object* makeBoolObject(bool value);
 Object* makeStringObject(string* object);
 Object* makeListObject(ListHeader* listObj);
+Object* makeClosureObject(Closure* closure);
 string toString(Object* object);
 int compareObjects(Object* lhs, Object* rhs);
 #endif

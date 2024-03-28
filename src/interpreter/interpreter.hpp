@@ -3,6 +3,7 @@
 #include <iostream>
 #include <map>
 #include "../object/object.hpp"
+#include "../closure/closure.hpp"
 #include "../parser/parser.hpp"
 #include "../memstore/memstore.hpp"
 using namespace std;
@@ -18,6 +19,7 @@ struct ActivationRecord {
     Procedure* function;
     map<string, int> env;
     Object* returnValue;
+    ActivationRecord* dynamicLink;
     ActivationRecord();
 };
 
@@ -32,6 +34,9 @@ class CallStack {
         }
         bool empty() {
             return p == 0;
+        }
+        int size() {
+            return p;
         }
         void push(ActivationRecord* ar) {
             stack[p++] = ar;
@@ -62,11 +67,13 @@ class Interpreter {
         ActivationRecord* prepareActivationRecord(ASTNode* node);
         int getAddress(string name);
         Object* getVariableValue(ASTNode* node);
+        Object* runClosure(ASTNode* node, Object* obj);
         Object* procedureCall(ASTNode* node);
+        Object* lambdaExpr(ASTNode* node);
         Object* eval(ASTNode* node);
         Object* expression(ASTNode* node);
         Object* listExpr(ASTNode* node);
-        Object* getListItem(ASTNode* node, Object* arr);
+        Object* getListItem(ASTNode* node, Object* list);
         Object* sortList(ASTNode* node);
         Object* listSize(ASTNode* node);
         void popList(ASTNode* node);

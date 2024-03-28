@@ -5,6 +5,7 @@ smolz:
 	g++ --std=c++17 -c src/buffer/stringbuffer.cpp
 	g++ --std=c++17 -c src/object/object.cpp
 	g++ --std=c++17 -c src/object/list.cpp
+	g++ --std=c++17 -c src/closure/closure.cpp
 	g++ --std=c++17 -c src/memstore/memstore.cpp
 	g++ --std=c++17 -c src/interpreter/interpreter.cpp
 	g++ --std=c++17 -c src/cli.cpp
@@ -18,7 +19,8 @@ debug:
 	g++ --std=c++17 -g -c src/buffer/stringbuffer.cpp
 	g++ --std=c++17 -g -c src/object/object.cpp
 	g++ --std=c++17 -g -c src/object/list.cpp
-	g++ --std=c++17 -c src/memstore/memstore.cpp
+	g++ --std=c++17 -g -c src/closure/closure.cpp
+	g++ --std=c++17 -g -c src/memstore/memstore.cpp
 	g++ --std=c++17 -g -c src/interpreter/interpreter.cpp
 	g++ --std=c++17 -g -c src/cli.cpp
 	g++ *.o -o smolz

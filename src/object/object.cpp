@@ -12,6 +12,7 @@ Object::Object(const Object& obj) {
         case AS_REAL:   realVal = obj.realVal; break;
         case AS_STRING: stringVal = obj.stringVal; break;
         case AS_LIST:   list = obj.list; break;
+        case AS_CLOSURE: closure = obj.closure; break;
     }
     isnull = obj.isnull;
     type = obj.type;
@@ -25,6 +26,7 @@ bool Object::operator==(const Object& obj) const noexcept {
             case AS_REAL: return realVal == obj.realVal;
             case AS_STRING: return stringVal == obj.stringVal;
             case AS_LIST: return  list == obj.list;
+            case AS_CLOSURE: return closure == obj.closure;
         }
     }
     return false;
@@ -42,6 +44,7 @@ Object& Object::operator=(const Object& obj) {
             case AS_REAL:   realVal = obj.realVal;
             case AS_STRING: stringVal = obj.stringVal;
             case AS_LIST:   list = obj.list;
+            case AS_CLOSURE: closure = obj.closure;
         }
         isnull = obj.isnull;
         type = obj.type;
@@ -86,6 +89,12 @@ Object* makeListObject(ListHeader* list) {
     return obj;
 }
 
+Object* makeClosureObject(Closure* closure) {
+    Object* obj = makeObject(AS_CLOSURE);
+    obj->closure = closure;
+    return obj;
+}
+
 string toString(Object* obj) {
     if (obj == nullptr)
         return "[err]";
@@ -96,6 +105,7 @@ string toString(Object* obj) {
         case AS_INT:    str = to_string(obj->intVal);  break;
         case AS_BOOL:   str = obj->boolVal ? "true":"false"; break;
         case AS_STRING: str = *obj->stringVal; break;
+        case AS_CLOSURE: str = "(LAMBDA)"; break;
         case AS_LIST: 
             str = "[ ";
             if (obj->list != nullptr) {

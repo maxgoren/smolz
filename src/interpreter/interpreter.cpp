@@ -47,7 +47,34 @@ ActivationRecord* Interpreter::prepareActivationRecord(ASTNode* node) {
         say(it->data.stringVal + " added to AR.");
     }
     ar->returnValue = makeRealObject(0.0);
+    ar->dynamicLink = callStack.top();
     return ar;
+}
+
+Object* Interpreter::runClosure(ASTNode* node, Object* obj) {
+    cout<<"[CLOSURE]"<<endl;
+    auto clos = obj->closure;
+    ActivationRecord* ar = new ActivationRecord;
+    ar->function = new Procedure;
+    ar->function->functionBody = clos->functionBody;
+    ar->env = clos->env;
+    cout<<"Params: "<<endl;
+    for (auto it = clos->paramList; it != nullptr; it = it->left) {
+        ar->env.insert(make_pair(it->data.stringVal, memStore.storeAtNextFree(expression(node->left))));
+    }
+    ar->returnValue = makeRealObject(0.0);
+    ar->dynamicLink = callStack.top();
+    callStack.push(ar);
+    auto body = callStack.top()->function->functionBody;
+    stopProcedure = false;
+    cout<<"Running lambda"<<endl;
+    run(body);
+    Object* retVal = callStack.top()->returnValue;
+    for (auto toFree : callStack.top()->env) {
+        memStore.free(toFree.second);
+    }
+    callStack.pop();
+    return retVal;
 }
 
 Object* Interpreter::procedureCall(ASTNode* node) {
@@ -65,11 +92,21 @@ Object* Interpreter::procedureCall(ASTNode* node) {
             memStore.free(toFree.second);
         }
         callStack.pop();
+        return retVal;
+    }
+    int addr = getAddress(node->data.stringVal);
+    Object* obj = memStore.get(addr);
+    if (addr > 0 && obj->type == AS_CLOSURE) {
+        return runClosure(node, obj);
     } else {
         say("No such function: " + node->data.stringVal);
     }
     leave();
     return retVal;
+}
+
+Object* Interpreter::lambdaExpr(ASTNode* node) {
+    return makeClosureObject(makeClosure(node->right, node->left, callStack.top()->env));
 }
 
 Object* Interpreter::listExpr(ASTNode* node) {
@@ -103,12 +140,15 @@ int Interpreter::getAddress(string name) {
     int addr = 0;
     if (!callStack.empty() && callStack.top()->env.find(name) != callStack.top()->env.end())
         addr = callStack.top()->env[name];
-    
+
+    if (callStack.size() > 1 && callStack.top()->dynamicLink->env.find(name) != callStack.top()->dynamicLink->env.end())
+        addr = callStack.top()->dynamicLink->env[name];
+
     if (st.find(name) != st.end())
         addr = st[name];
    
     if (addr == 0)
-        cout<<"Error: No List named "<<name<<" found."<<endl;
+        cout<<"Error: No var named "<<name<<" found."<<endl;
     
     return addr;
 }
@@ -274,6 +314,9 @@ Object* Interpreter::expression(ASTNode* node) {
         case FUNC_EXPR:
             enter("[func_expr] " + node->data.stringVal); leave();
             return procedureCall(node);
+        case LAMBDA_EXPR:
+            enter("[lambda_expr]"); leave();
+            return lambdaExpr(node);
         case STRINGLIT_EXPR:
             enter("[string literal expression]"); leave();
             return makeStringObject(&(node->data.stringVal));

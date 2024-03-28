@@ -35,6 +35,10 @@ ASTNode* Parser::parse(vector<Lexeme>& tokens) {
 }
 
 ASTNode* Parser::program() {
+    return statementList();
+}
+
+ASTNode* Parser::statementList() {
     ASTNode* node = statement();
     ASTNode* m = node;
     while (lookahead() != RCURLY && lookahead() != EOFTOKEN) {
@@ -263,8 +267,11 @@ ASTNode* Parser::var() {
         node = simpleExpr();
         match(RPAREN);
     }
+    if (lookahead() == LAMBDA) {
+        return lambdaExpr();
+    }
     if (lookahead() == LSQ || lookahead() == LENGTH || lookahead() == SORT || lookahead() == POP)
-        node = listExpr();
+        return listExpr();
     return node;
 }
 
@@ -310,4 +317,18 @@ ASTNode* Parser::listExpr() {
         return node;
     }
     return nullptr;
+}
+
+ASTNode* Parser::lambdaExpr() {
+    ASTNode* node = makeExprNode(LAMBDA_EXPR, lookahead(), current.stringVal);
+    match(LAMBDA);
+    match(LPAREN);
+    if (lookahead() != RPAREN)
+        node->left = simpleExpr();
+    match(RPAREN);
+    match(LCURLY);
+    node->right = statementList();
+    if (lookahead() == RCURLY)
+        match(RCURLY);
+    return node;
 }

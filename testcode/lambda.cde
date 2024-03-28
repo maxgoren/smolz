@@ -1,0 +1,16 @@
+def outter(x) {
+    def inner(y) {
+        return x + y;
+    }
+    return inner(x);
+}
+
+def test(y) {
+    z := 2;
+    return lambda() { return z + 2 + y; }
+}
+
+println outter(5);
+
+g := test(5);
+println g(2);
